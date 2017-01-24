@@ -1,4 +1,4 @@
-import homeTemplate from './controllers/home.html';
+import holdingsTemplate from './controllers/holdings.html';
 import YahooQuoteService from './services/yahoo-quote-service';
 
 function routesConfig($stateProvider, $urlRouterProvider) {
@@ -6,15 +6,16 @@ function routesConfig($stateProvider, $urlRouterProvider) {
 
   $urlRouterProvider.otherwise('/');
   $stateProvider
-    .state('home', {
+    // TODO: Need preliminary state(s) here for initial 'splash'/home page & user login
+    .state('holdings', {
       url: '/',
-      controller: 'HomeController as vm',
-      template: homeTemplate,
+      controller: 'HoldingsController as vm',
+      template: holdingsTemplate,
       resolve: {
         currentQuoteData: ($stateParams, YahooQuoteService) => {
           'ngInject';          
           console.log($stateParams.userHoldings);          
-          return YahooQuoteService.search(['SCHB', 'AAPL']);
+          return YahooQuoteService.search(['SCHB', 'SCHD', 'SCHF', 'SCHE']);
           // return YahooQuoteService.search($stateParams.userHoldings); // TODO: need to call ProfileService to get username + userHoldings for YahooQuoteService
         },
       },

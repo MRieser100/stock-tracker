@@ -37617,16 +37617,18 @@ function routesConfig($stateProvider, $urlRouterProvider) {
   'ngInject';
 
   $urlRouterProvider.otherwise('/');
-  $stateProvider.state('home', {
+  $stateProvider
+  // TODO: Need preliminary state(s) here for initial 'splash'/home page & user login
+  .state('holdings', {
     url: '/',
-    controller: 'HomeController as vm',
-    template: _home2.default,
+    controller: 'HoldingsController as vm',
+    template: homeTemplate,
     resolve: {
       currentQuoteData: ["$stateParams", "YahooQuoteService", function currentQuoteData($stateParams, YahooQuoteService) {
         'ngInject';
 
         console.log($stateParams.userHoldings);
-        return YahooQuoteService.search(['SCHB', 'AAPL']);
+        return YahooQuoteService.search(['SCHB', 'SCHD', 'SCHF', 'SCHE']);
         // return YahooQuoteService.search($stateParams.userHoldings); // TODO: need to call ProfileService to get username + userHoldings for YahooQuoteService
       }]
     }
