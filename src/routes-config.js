@@ -1,4 +1,5 @@
 import holdingsTemplate from './controllers/holdings.html';
+import homeTemplate from './controllers/home.html';
 import YahooQuoteService from './services/yahoo-quote-service';
 
 function routesConfig($stateProvider, $urlRouterProvider) {
@@ -9,14 +10,23 @@ function routesConfig($stateProvider, $urlRouterProvider) {
     // TODO: Need preliminary state(s) here for initial 'splash'/home page & user login
     .state('holdings', {
       url: '/',
-      controller: 'HoldingsController as vm',
-      template: holdingsTemplate,
-      resolve: {
-        currentQuoteData: ($stateParams, YahooQuoteService) => {
-          'ngInject';          
-          console.log($stateParams.userHoldings);          
-          return YahooQuoteService.search(['SCHB', 'SCHD', 'SCHF', 'SCHE']);
-          // return YahooQuoteService.search($stateParams.userHoldings); // TODO: need to call ProfileService to get username + userHoldings for YahooQuoteService
+      controller: 'HomeController as vm',
+      template: homeTemplate,
+      resolve: {        
+        accountsData: ($stateParams, $http, $q, YahooQuoteService) => {
+          'ngInject';        
+          // TODO: Extract into ProfileService class - 'q' param would ideally be extracted from User Authentication Page  
+          return $http.get('/localDb/users', {q: 'Michael Rieser'})
+            .then(function(response){                            
+              return response.data.map( (user) => {
+                  let userName = user.fullName;
+                  let userAccounts = user.accounts;                
+
+                  return $q.all(userAccounts.map( (acct) => {                  
+                    return { name: acct.name, holdingsStatus: YahooQuoteService.search(acct.holdings) };
+                  }));        
+                });
+              });
         },
       },
     })  

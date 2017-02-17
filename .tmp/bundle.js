@@ -37562,23 +37562,29 @@ var lab11App = _angular2.default.module('stock-tracker-app', [_angularUiRouter2.
 
 exports.default = lab11App.name;
 
-},{"./controllers/home-controller":5,"./routes-config":7,"./services/yahoo-quote-service":8,"angular":3,"angular-ui-router":1}],5:[function(require,module,exports){
+},{"./controllers/home-controller":6,"./routes-config":8,"./services/yahoo-quote-service":9,"angular":3,"angular-ui-router":1}],5:[function(require,module,exports){
+module.exports = '\n<pre>{{ vm.currentQuotes | json }}</pre>\n<div id="userQuotes">  \n</div>\n\n<!--\n<div>\n  <input type="text" ng-model="vm.query" ng-keyup="vm.handleKeyup($event)"/>\n  <button type="button" ng-click="vm.handleSearch()">Search</button>\n</div>-->\n';
+},{}],6:[function(require,module,exports){
 'use strict';
 
-HomeController.$inject = ["$q", "$state", "currentQuoteData"];
+HomeController.$inject = ["$q", "$state", "accountsData"];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // Note: $q library is utilized to handle promises
-function HomeController($q, $state, currentQuoteData) {
+function HomeController($q, $state, accountsData) {
   'ngInject';
+
+  // <START> - parse this data and display in holdings.html partial
+
+  console.log(accountsData[0]);
 
   var vm = this;
   // TODO-B: Implement ProfileService + user authentication and set username + userHoldings dynamically
   vm.username = 'Michael Rieser';
   vm.userHoldings = ['SCHB', 'SCHD', 'SCHE', 'SCHF'];
 
-  vm.currentQuotes = currentQuoteData;
+  vm.currentQuotes = accountsData;
 
   // vm.handleKeyup = (event) => {
   //   if (event.keyCode === 13) {
@@ -37593,15 +37599,19 @@ function HomeController($q, $state, currentQuoteData) {
 
 exports.default = HomeController;
 
-},{}],6:[function(require,module,exports){
-module.exports = '<h2>Welcome {{ vm.username }}</h2>\n<pre>{{ vm.currentQuotes | json }}</pre>\n<div id="userQuotes">  \n</div>\n\n<!--\n<div>\n  <input type="text" ng-model="vm.query" ng-keyup="vm.handleKeyup($event)"/>\n  <button type="button" ng-click="vm.handleSearch()">Search</button>\n</div>-->\n';
 },{}],7:[function(require,module,exports){
+module.exports = '<h2>Welcome {{ vm.username }}</h2>\n<ng-include src="\'/controllers/holdings.html\'"></ng-include>\n';
+},{}],8:[function(require,module,exports){
 'use strict';
 
 routesConfig.$inject = ["$stateProvider", "$urlRouterProvider"];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _holdings = require('./controllers/holdings.html');
+
+var _holdings2 = _interopRequireDefault(_holdings);
 
 var _home = require('./controllers/home.html');
 
@@ -37621,15 +37631,23 @@ function routesConfig($stateProvider, $urlRouterProvider) {
   // TODO: Need preliminary state(s) here for initial 'splash'/home page & user login
   .state('holdings', {
     url: '/',
-    controller: 'HoldingsController as vm',
-    template: homeTemplate,
+    controller: 'HomeController as vm',
+    template: _home2.default,
     resolve: {
-      currentQuoteData: ["$stateParams", "YahooQuoteService", function currentQuoteData($stateParams, YahooQuoteService) {
+      accountsData: ["$stateParams", "$http", "$q", "YahooQuoteService", function accountsData($stateParams, $http, $q, YahooQuoteService) {
         'ngInject';
+        // TODO: Extract into ProfileService class - 'q' param would ideally be extracted from User Authentication Page  
 
-        console.log($stateParams.userHoldings);
-        return YahooQuoteService.search(['SCHB', 'SCHD', 'SCHF', 'SCHE']);
-        // return YahooQuoteService.search($stateParams.userHoldings); // TODO: need to call ProfileService to get username + userHoldings for YahooQuoteService
+        return $http.get('/localDb/users', { q: 'Michael Rieser' }).then(function (response) {
+          return response.data.map(function (user) {
+            var userName = user.fullName;
+            var userAccounts = user.accounts;
+
+            return $q.all(userAccounts.map(function (acct) {
+              return { name: acct.name, holdingsStatus: YahooQuoteService.search(acct.holdings) };
+            }));
+          });
+        });
       }]
     }
   });
@@ -37637,7 +37655,7 @@ function routesConfig($stateProvider, $urlRouterProvider) {
 
 exports.default = routesConfig;
 
-},{"./controllers/home.html":6,"./services/yahoo-quote-service":8}],8:[function(require,module,exports){
+},{"./controllers/holdings.html":5,"./controllers/home.html":7,"./services/yahoo-quote-service":9}],9:[function(require,module,exports){
 'use strict';
 
 YahooQuoteService.$inject = ["$http", "$q"];
@@ -37669,7 +37687,7 @@ function YahooQuoteService($http, $q) {
         return 'select ' + fields.join(', ') + ' from yahoo.finance.quotes where symbol in ("' + symbol + '")';
     };
 
-    function _getSymbolQuote(symbol) {
+    function _getQuote(symbol) {
         var store = 'store://datatables.org/alltableswithkeys';
 
         return $http.get('https://query.yahooapis.com/v1/public/yql', { params: { q: _getQueryString(symbol), format: 'json', env: store, callback: '' } }).then(_responseTransformer).catch(function (error) {
@@ -37682,7 +37700,7 @@ function YahooQuoteService($http, $q) {
 
         // $q.all will complete once mapped promise objects for symbol(s) are resolved        
         return $q.all(symbols.map(function (symbol) {
-            return _getSymbolQuote(symbol);
+            return _getQuote(symbol);
         })).then(function (results) {
             return results;
         });

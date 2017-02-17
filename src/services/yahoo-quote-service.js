@@ -24,7 +24,7 @@ function YahooQuoteService($http, $q) {
         return `select ${fields.join(', ')} from yahoo.finance.quotes where symbol in ("${symbol}")`; 
     };
 
-    function _getSymbolQuote(symbol) {        
+    function _getQuote(symbol) {        
         const store = 'store://datatables.org/alltableswithkeys';
 
         return $http.get('https://query.yahooapis.com/v1/public/yql', {params: {q: _getQueryString(symbol), format: 'json', env: store, callback: ''}})
@@ -36,7 +36,7 @@ function YahooQuoteService($http, $q) {
         symbols = !Array.isArray(symbols) ? symbols.split() : symbols;
 
         // $q.all will complete once mapped promise objects for symbol(s) are resolved        
-        return $q.all(symbols.map( (symbol) => _getSymbolQuote(symbol) )).then( (results) => { return results; } );        
+        return $q.all(symbols.map( (symbol) => _getQuote(symbol) )).then( (results) => { return results; } );        
     }
 
     return {

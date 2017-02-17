@@ -1,0 +1,31 @@
+{
+    "users": [
+        {
+            "full_name": "Michael Rieser",
+            "accounts": [
+                {
+                    "name": "Schwab One",                    
+                    "holdings": [
+                        "SCHF",
+                        "SCHE",
+                        "SCHD",
+                        "SCHB"
+                    ]                    
+                },
+                {
+                    "name": "Roth IRA",
+                    "holdings": [
+                        "VCSH",
+                        "GSY",
+                        "SCHF",
+                        "SCHD",
+                        "SCHE",
+                        "DBEF",
+                        "SCHB"
+                    ]
+                }
+
+            ]            
+        }
+    ]    
+}

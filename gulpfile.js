@@ -69,9 +69,9 @@ gulp.task('json-server', function() {
 });
 
 gulp.task('serve', ['watch', 'json-server'], function() {
-  var jsonServerProxy = proxy('/api', {
+  var jsonServerProxy = proxy('/localDb', {
     target: 'http://localhost:3030',
-    pathRewrite: {'^/api': ''},
+    pathRewrite: {'^/localDb': ''},
   });
 
   browserSync.init({
